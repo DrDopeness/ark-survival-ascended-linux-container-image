@@ -10,13 +10,14 @@ if [ ! -d "/home/gameserver/steamcmd/linux32" ]; then
   cd /home/gameserver/steamcmd
 	wget https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
   tar xfvz steamcmd_linux.tar.gz
+  rm steamcmd_linux.tar.gz
 fi
 
 # download/update server files
 cd /home/gameserver/steamcmd
 ./steamcmd.sh +force_install_dir /home/gameserver/server-files +login anonymous +app_update 2430930 validate +quit
 
-PROTON_VERSION="8-21"
+PROTON_VERSION="10-17"
 PROTON_DIR_NAME="GE-Proton$PROTON_VERSION"
 PROTON_ARCHIVE_NAME="$PROTON_DIR_NAME.tar.gz"
 STEAM_COMPAT_DATA=/home/gameserver/server-files/steamapps/compatdata
@@ -38,6 +39,7 @@ if [ ! -d "$STEAM_COMPAT_DIR/$PROTON_DIR_NAME" ]; then
   mkdir -p $STEAM_COMPAT_DIR
   echo "Downloading Proton version $PROTON_VERSION... This might take a while"
   wget -P /tmp https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton$PROTON_VERSION/GE-Proton$PROTON_VERSION.tar.gz
+  wget -O /tmp/GE-Proton$PROTON_VERSION.sha512sum https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton$PROTON_VERSION/GE-Proton$PROTON_VERSION.sha512sum
   EXIT_CODE=$?
 
   if [ $EXIT_CODE -ne 0 ]; then
@@ -46,13 +48,14 @@ if [ ! -d "$STEAM_COMPAT_DIR/$PROTON_DIR_NAME" ]; then
   fi
 
   echo "Download finished, comparing checksums..."
-  sha512sum -c /usr/share/proton/GE-Proton$PROTON_VERSION.sha512sum
+  cd /tmp
+  sha512sum -c /tmp/GE-Proton$PROTON_VERSION.sha512sum
 
   if [ $? -ne 0 ]; then
     echo "Error: Proton checksum mismatch!"
     exit 201
   fi
-
+  cd /home/gameserver/steamcmd
   tar -xf /tmp/$PROTON_ARCHIVE_NAME -C $STEAM_COMPAT_DIR
   rm /tmp/$PROTON_ARCHIVE_NAME
 fi
@@ -83,4 +86,4 @@ if [ -f "$ASA_PLUGIN_BINARY_PATH" ]; then
   LAUNCH_BINARY_NAME="$ASA_PLUGIN_BINARY_NAME"
 fi
 
-$STEAM_COMPAT_DIR/$PROTON_DIR_NAME/proton run $LAUNCH_BINARY_NAME $ASA_START_PARAMS
+exec "$STEAM_COMPAT_DIR/$PROTON_DIR_NAME/proton" run "$LAUNCH_BINARY_NAME" $ASA_START_PARAMS

@@ -1,1 +1,1 @@
-root/usr/share/proton/GE-Proton8-21.tar.gz filter=lfs diff=lfs merge=lfs -text
+root/usr/share/proton/GE-Proton10-17.tar.gz filter=lfs diff=lfs merge=lfs -text
